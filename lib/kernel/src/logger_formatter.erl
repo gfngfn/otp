@@ -36,6 +36,7 @@
                     time_designator => byte(),
                     time_offset     => integer() | [byte()]}.
 -type template() :: [metakey() | {metakey(),template(),template()} | unicode:chardata()].
+-type linear_template() :: [metakey() | unicode:chardata()].
 -type metakey() :: atom() | [atom()].
 
 %%%-----------------------------------------------------------------
@@ -48,7 +49,8 @@ format(#{level:=Level,msg:=Msg0,meta:=Meta},Config0)
     Config = add_default_config(Config0),
     Meta1 = maybe_add_legacy_header(Level,Meta,Config),
     Template = maps:get(template,Config),
-    {BT,AT0} = lists:splitwith(fun(msg) -> false; (_) -> true end, Template),
+    LinearTemplate = linearize_template(Meta1,Template),
+    {BT,AT0} = lists:splitwith(fun(msg) -> false; (_) -> true end, LinearTemplate),
     {DoMsg,AT} =
         case AT0 of
             [msg|Rest] -> {true,Rest};
@@ -108,15 +110,22 @@ trim([H|T],true) when is_list(H) ->
 trim(String,_) ->
     String.
 
+-spec linearize_template(logger:metadata(),template()) -> linear_template().
+linearize_template(Data,[{Key,IfExist,Else}|Format]) ->
+    BranchForUse =
+        case value(Key,Data) of
+            {ok,_Value} -> linearize_template(Data,IfExist);
+            error -> linearize_template(Data,Else)
+        end,
+    BranchForUse ++ linearize_template(Data,Format);
+linearize_template(Data,[StrOrKey|Format]) ->
+    [StrOrKey|linearize_template(Data,Format)];
+linearize_template(_Data,[]) ->
+    [].
+
+-spec do_format(logger:level(),logger:metadata(),linear_template(),config()) -> [unicode:chardata()].
 do_format(Level,Data,[level|Format],Config) ->
     [to_string(level,Level,Config)|do_format(Level,Data,Format,Config)];
-do_format(Level,Data,[{Key,IfExist,Else}|Format],Config) ->
-    String =
-        case value(Key,Data) of
-            {ok,Value} -> do_format(Level,Data#{Key=>Value},IfExist,Config);
-            error -> do_format(Level,Data,Else,Config)
-        end,
-    [String|do_format(Level,Data,Format,Config)];
 do_format(Level,Data,[Key|Format],Config)
   when is_atom(Key) orelse
        (is_list(Key) andalso is_atom(hd(Key))) ->

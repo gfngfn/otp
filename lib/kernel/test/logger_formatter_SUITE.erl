@@ -272,7 +272,7 @@ template(_Config) ->
                                [[nested,subkey]]),
     String8 = format(info,{"~p",[term]},Meta8,#{template=>Template8,
                                                 single_line=>true}),
-    ct:log(String6),
+    ct:log(String8),
     SelfStr = pid_to_list(self()),
     RefStr8 = ref_to_list(Ref8),
     ListStr = "[list,\"string\",4321,#{},{tuple}]",

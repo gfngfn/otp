@@ -53,7 +53,7 @@ end_per_testcase(Case, Config) ->
 groups() ->
     [].
 
-all() -> 
+all() ->
     [default,
      legacy_header,
      error_logger_notice_header,
@@ -106,8 +106,8 @@ legacy_header(_Config) ->
                                                         single_line=>false}),
     ct:log(String2),
     ExpectedTimestamp = default_time_format(Time),
-    " info:\nterm\n" = string:prefix(String2,ExpectedTimestamp), 
-    
+    " info:\nterm\n" = string:prefix(String2,ExpectedTimestamp),
+
     String3 = format(info,{"~p",[term]},#{time=>Time},#{legacy_header=>bad,
                                                         single_line=>false}),
     ct:log(String3),
@@ -159,11 +159,11 @@ single_line(_Config) ->
     ExpectedTimestamp = default_time_format(Time),
     String1 = format(info,{"~p",[term]},#{time=>Time},#{single_line=>true}),
     ct:log(String1),
-    " info: term\n" = string:prefix(String1,ExpectedTimestamp), 
+    " info: term\n" = string:prefix(String1,ExpectedTimestamp),
 
     String2 = format(info,{"~p",[term]},#{time=>Time},#{single_line=>false}),
     ct:log(String2),
-    " info:\nterm\n" = string:prefix(String2,ExpectedTimestamp), 
+    " info:\nterm\n" = string:prefix(String2,ExpectedTimestamp),
 
     String2 = format(info,{"~p",[term]},#{time=>Time},#{single_line=>bad}),
 
@@ -344,6 +344,18 @@ template(_Config) ->
         "exist:#{key1 => #{subkey1 => value1},key2 => value2}" -> ok;
         _ -> ct:fail({full_nested_map_unexpected,MultipleKeysStr10})
     end,
+
+    Meta11A = #{time=>Time,be_short=>ok},
+    Meta11B = #{time=>Time},
+    Template11 =
+        [{be_short,
+          ["short:",msg],
+          ["long:[",level,"]",msg]}],
+    String11A = format(info,{"~p",[term]},Meta11A,#{template=>Template11,single_line=>true}),
+    String11B = format(info,{"~p",[term]},Meta11B,#{template=>Template11,single_line=>true}),
+    ct:log(String11A),
+    ct:log(String11B),
+    {"short:term","long:[info]term"} = {String11A,String11B},
 
     ok.
 
@@ -584,7 +596,7 @@ format_mfa(_Config) ->
     "'m o d':'a\x{281}b'/1" = String5,
 
     ok.
-    
+
 format_time(_Config) ->
     Time = timestamp(),
     Meta = #{time=>Time},
@@ -654,7 +666,7 @@ level_or_msg_in_meta(_Config) ->
     String = format(info,{"~p",[term]},Meta,#{template=>Template}),
     ct:log(String),
     "info;term" = String, % so mylevel and "metamsg" are ignored
-    
+
     ok.
 
 faulty_log(_Config) ->

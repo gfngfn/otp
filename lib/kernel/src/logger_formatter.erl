@@ -110,7 +110,6 @@ trim([H|T],true) when is_list(H) ->
 trim(String,_) ->
     String.
 
--spec linearize_template(logger:metadata(),template()) -> linear_template().
 linearize_template(Data,[{Key,IfExist,Else}|Format]) ->
     BranchForUse =
         case value(Key,Data) of
@@ -123,7 +122,6 @@ linearize_template(Data,[StrOrKey|Format]) ->
 linearize_template(_Data,[]) ->
     [].
 
--spec do_format(logger:level(),logger:metadata(),linear_template(),config()) -> [unicode:chardata()].
 do_format(Level,Data,[level|Format],Config) ->
     [to_string(level,Level,Config)|do_format(Level,Data,Format,Config)];
 do_format(Level,Data,[Key|Format],Config)
